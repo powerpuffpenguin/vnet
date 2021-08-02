@@ -10,11 +10,15 @@ import (
 	"github.com/powerpuffpenguin/vnet"
 )
 
+type dialResult struct {
+	c net.Conn
+	e error
+}
 type Listener struct {
 	opts listenerOptions
 	addr net.Addr
 
-	ch    chan net.Conn
+	ch    chan dialResult
 	close <-chan struct{}
 	done  uint32
 	m     sync.Mutex
@@ -33,7 +37,7 @@ func Listen(addr net.Addr, opt ...ListenerOption) *Listener {
 		opts: opts,
 		addr: addr,
 
-		ch:     make(chan net.Conn),
+		ch:     make(chan dialResult),
 		close:  ctx.Done(),
 		ctx:    ctx,
 		cancel: cancel,
@@ -49,11 +53,13 @@ func (l *Listener) Accept() (c net.Conn, e error) {
 	}
 
 	// dial
-	go l.dial()
+	go l.asyncDial()
 
-	// wait success
+	// wait result
 	select {
-	case c = <-l.ch:
+	case result := <-l.ch:
+		c = result.c
+		e = result.e
 	case <-l.close:
 		e = vnet.ErrListenerClosed
 	}
@@ -79,6 +85,19 @@ func (l *Listener) Close() (e error) {
 // Addr returns the listener's network address.
 func (l *Listener) Addr() net.Addr {
 	return l.addr
+}
+func (l *Listener) asyncDial() {
+	c, e := l.dial()
+	select {
+	case <-l.close:
+		if e == nil {
+			c.Close()
+		}
+	case l.ch <- dialResult{
+		c: c,
+		e: e,
+	}:
+	}
 }
 func (l *Listener) dial() (c net.Conn, e error) {
 	opts := &l.opts
@@ -194,8 +213,8 @@ func (l *Listener) recvSyn(ch chan error, stream *datagramStream, timeout time.D
 				default:
 				}
 			}
-			ch <- err
 		}
+		ch <- err
 	}()
 	work := true
 	for work {

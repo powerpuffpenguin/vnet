@@ -150,7 +150,6 @@ func (d *Dialer) DialContext(ctx context.Context, network, addr string) (c net.C
 		e = vnet.ErrDialerClosed
 		return
 	}
-
 	if d.opts.synAck {
 		e = d.synAck(ctx, stream)
 		if e != nil {
@@ -204,4 +203,5 @@ func (d *Dialer) asyncSynAck(ch chan<- error, stream *datagramStream) {
 		ch <- e
 		return
 	}
+	ch <- nil
 }
