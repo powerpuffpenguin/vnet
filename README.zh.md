@@ -1,18 +1,18 @@
 # vnet
-virtual net interface
+虛擬網路接口
 
-[中文](README.zh.md)
+[English](README.md)
 
-golang provides net.Listener and net.Conn interfaces to wrap the network. A lot of interesting tcp codes are built on these two interfaces. So as long as these two interfaces are met, these codes can be used outside of tcp, this is what vnet does.
+golang 提供了 net.Listener 和 net.Conn 接口來封裝網絡。 在這兩個接口上構建了很多有趣的 tcp 代碼。 所以只要滿足這兩個接口，這些代碼就可以在tcp之外使用，這就是 vnet 要做的事。
 
 * [PipeListener](#pipelistener)
 * [reverse.Dialer reverse.Listener](#reversedialer-reverselistener)
 
 # PipeListener
 
-The ListenPipe function returns a PipeListener. PipeListener implements the net.Listener interface in memory. Use PipeListener.Dial or PipeListener.DialContext to dial.
+ListenPipe 函數返回一個 PipeListener。 PipeListener 在內存中實現 net.Listener 接口。 使用 PipeListener.Dial 或 PipeListener.DialContext 進行撥號。
 
-One of the most typical applications is to use PipeListener to provide grpc and grpc-gateway services in the program. The grpc and grpc-gateway use memory copy communication instead of socket communication.
+最典型的應用之一就是在程序中使用 PipeListener 提供 grpc 和 grpc-gateway 服務。 grpc 和 grpc-gateway 使用內存複製通信而不是套接字通信。
 
 ```
 package main
@@ -98,9 +98,9 @@ func runServer(l net.Listener) {
 
 # reverse.Dialer reverse.Listener
 
-reverse.Dialer reverse.Listener used to reverse the server client. This allows socket.connect to work in the server role and socket.accept to work in the client role.
+reverse.Dialer reverse.Listener 用於逆反服務器客戶端。 這允許 socket.connect 以服務器角色工作，而 socket.accept 以客戶端角色工作。
 
-The most typical use is that the server role works on the internal network, and the client role works on the external network. For example, reverse Trojan horses or programs that need to break through the intranet to provide services. Imagine how easy it is to write a reverse Trojan using grpc.
+最典型的使用場景是服務器工作在內網，客戶端工作在外網所以需要服務器撥號到客戶端。 比如逆向木馬或者需要突破內網提供服務的程序。 想像一下，使用 grpc 編寫反向木馬是多麼容易。
 
 ```
 package main
