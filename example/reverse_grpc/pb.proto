@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+// protoc --go_out='./math' --go_opt=paths=source_relative --go-grpc_out='./math' --go-grpc_opt=paths=source_relative pb.proto
+package reverse_grpc.math;
+option go_package = "reverse_grpc/math";
+
+service Math {
+    rpc Add(AddRequest) returns (AddResponse);
+    rpc Random(stream RandomRequest) returns (stream RandomResponse);
+}
+message AddRequest{
+    repeated int64 vals = 1;
+}
+message AddResponse{
+    int64 sum = 1;
+}
+message RandomRequest{
+    int64 max = 1;
+}
+message RandomResponse{
+    int64 val = 1;
+}
